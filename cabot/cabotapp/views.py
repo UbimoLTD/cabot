@@ -308,6 +308,7 @@ class ServiceForm(forms.ModelForm):
             'alerts',
             'alerts_enabled',
             'hackpad_id',
+            'tag'
         )
         widgets = {
             'name': forms.TextInput(attrs={'style': 'width: 30%;'}),
