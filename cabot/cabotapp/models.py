@@ -282,7 +282,12 @@ class Service(CheckGroupMixin):
 
     url = models.TextField(
         blank=True,
-        help_text="URL of service."
+        help_text='URL of service.'
+    )
+
+    tag = models.TextField(
+        blank=True,
+        help_text='Event tag of service'
     )
 
     class Meta:
