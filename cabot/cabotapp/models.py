@@ -166,6 +166,7 @@ class CheckGroupMixin(models.Model):
         
         if graphite_output['error']:
             logger.error(u'Could not parse events for tag {}'.format(self.tag))
+            logger.error(graphite_output)
         
         if graphite_output['num_series_with_data'] > 0:
             logger.info(u'Event for tag {}, not sending alert'.format(self.tag))
