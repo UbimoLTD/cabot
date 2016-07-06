@@ -313,6 +313,7 @@ class ServiceForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'style': 'width: 30%;'}),
             'url': forms.TextInput(attrs={'style': 'width: 70%;'}),
+            'tag': forms.TextInput(attrs={'style': 'width: 30%;'}),
             'status_checks': forms.SelectMultiple(attrs={
                 'data-rel': 'chosen',
                 'style': 'width: 70%',
