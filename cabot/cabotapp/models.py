@@ -162,6 +162,15 @@ class CheckGroupMixin(models.Model):
         return False
 
     def alert(self):
+        graphite_output = parse_metric('events({}, 1)'.foramt(self.tag))
+        
+        if graphite_output['error']:
+            logger.error(u'Could not parse events for tag {}'.format(self.tag))
+        
+        if graphite_output['num_series_with_data'] > 0:
+            logger.info(u'Event for tag {}, not sending alert'.format(self.tag))
+            return
+
         if not self.alerts_enabled:
             return
         if self.overall_status != self.PASSING_STATUS:
