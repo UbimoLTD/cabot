@@ -162,6 +162,14 @@ class CheckGroupMixin(models.Model):
         return False
 
     def alert(self):
+        graphite_output = parse_metric('events("{}", "1")'.format(self.tag))
+        
+        if graphite_output['error']:
+            logger.error(u'Could not parse events for tag {0}, error{1}:'.format(self.tag, graphite_output['error']))
+        elif graphite_output['num_series_with_data'] > 0:
+            logger.info(u'Event for tag {}, not sending alert'.format(self.tag))
+            return
+
         if not self.alerts_enabled:
             return
         if self.overall_status != self.PASSING_STATUS:
@@ -282,7 +290,12 @@ class Service(CheckGroupMixin):
 
     url = models.TextField(
         blank=True,
-        help_text="URL of service."
+        help_text='URL of service.'
+    )
+
+    tag = models.TextField(
+        blank=True,
+        help_text='Event tag of service'
     )
 
     class Meta:

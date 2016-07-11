@@ -308,10 +308,12 @@ class ServiceForm(forms.ModelForm):
             'alerts',
             'alerts_enabled',
             'hackpad_id',
+            'tag'
         )
         widgets = {
             'name': forms.TextInput(attrs={'style': 'width: 30%;'}),
             'url': forms.TextInput(attrs={'style': 'width: 70%;'}),
+            'tag': forms.TextInput(attrs={'style': 'width: 30%;'}),
             'status_checks': forms.SelectMultiple(attrs={
                 'data-rel': 'chosen',
                 'style': 'width: 70%',
