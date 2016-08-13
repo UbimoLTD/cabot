@@ -32,6 +32,8 @@ class Migration(SchemaMigration):
              self.gf('django.db.models.fields.TextField')(default='PASSING')),
             ('hackpad_id', self.gf('django.db.models.fields.TextField')
              (null=True, blank=True)),
+            ('tag', self.gf('django.db.models.fields.TextField')
+             (null=True, blank=True))
         ))
         db.send_create_signal('cabotapp', ['Service'])
 
@@ -242,6 +244,7 @@ class Migration(SchemaMigration):
             'status_checks': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['cabotapp.StatusCheck']", 'symmetrical': 'False', 'blank': 'True'}),
             'telephone_alert': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'url': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            'tag': ('django.db.models.fields.TextField', [], {'blank': 'True', 'null': 'True'}),
             'users_to_notify': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False', 'blank': 'True'})
         },
         'cabotapp.servicestatussnapshot': {
