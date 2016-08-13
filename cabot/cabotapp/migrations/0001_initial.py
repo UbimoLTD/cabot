@@ -33,9 +33,19 @@ class Migration(SchemaMigration):
             ('hackpad_id', self.gf('django.db.models.fields.TextField')
              (null=True, blank=True)),
             ('tag', self.gf('django.db.models.fields.TextField')
-             (null=True, blank=True))
+             (null=True, blank=True)),
+            ('rotagroup', models.ForeignKey(orm['cabotapp.RotaGroup'], null=True))
         ))
         db.send_create_signal('cabotapp', ['Service'])
+
+        ## Adding model 'ServiceGroup'
+        db.create_table('cabotapp_rotagrou1p', (
+            ('id', self.gf('django.db.models.fields.AutoField')
+             (primary_key=True)),
+            ('name', self.gf('django.db.models.fields.TextField')
+             (null=False))
+        ))
+        db.send_create_signal('cabotapp', ['RotaGroup'])
 
         # Adding M2M table for field users_to_notify on 'Service'
         db.create_table('cabotapp_service_users_to_notify', (
@@ -245,7 +255,12 @@ class Migration(SchemaMigration):
             'telephone_alert': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'url': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'tag': ('django.db.models.fields.TextField', [], {'blank': 'True', 'null': 'True'}),
+            'rotagroup': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['cabotapp.rotagroup']", 'blank': 'True', 'null': 'True'}),
             'users_to_notify': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False', 'blank': 'True'})
+        },
+        'cabotapp.rotagroup': {
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'url': ('django.db.models.fields.TextField', [], {'null': 'False'}),
         },
         'cabotapp.servicestatussnapshot': {
             'Meta': {'object_name': 'ServiceStatusSnapshot'},

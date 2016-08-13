@@ -81,7 +81,12 @@ class Migration(SchemaMigration):
             'telephone_alert': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'url': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'tag': ('django.db.models.fields.TextField', [], {'blank': 'True', 'null': 'True'}),
+            'rotagroup': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['cabotapp.rotagroup']", 'blank': 'True', 'null': 'True'}),
             'users_to_notify': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False', 'blank': 'True'})
+        },
+        'cabotapp.rotagroup': {
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'url': ('django.db.models.fields.TextField', [], {'null': 'False'}),
         },
         'cabotapp.servicestatussnapshot': {
             'Meta': {'object_name': 'ServiceStatusSnapshot'},

@@ -298,6 +298,12 @@ class Service(CheckGroupMixin):
         help_text='Event tag of service'
     )
 
+    rotagroup = models.OneToOneField(
+        'RotaGroup',
+        blank=True,
+        help_text='Rota group for duty'
+    )
+
     class Meta:
         ordering = ['name']
 
@@ -931,6 +937,12 @@ class Shift(models.Model):
         if self.deleted:
             deleted = ' (deleted)'
         return "%s: %s to %s%s" % (self.user.username, self.start, self.end, deleted)
+
+class RotaGroup(models.Model):
+    name = models.TextField(null=False)
+
+    def __unicode__(self):
+        return "RotaGroup %s" % (self.name)
 
 
 def get_duty_officers(at_time=None):

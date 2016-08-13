@@ -23,7 +23,7 @@ from django.views.generic import (
 from models import AlertPluginUserData
 from models import (
     StatusCheck, GraphiteStatusCheck, JenkinsStatusCheck, HttpStatusCheck, ICMPStatusCheck,
-    StatusCheckResult, UserProfile, Service, Instance, Shift, get_duty_officers)
+    StatusCheckResult, UserProfile, Service, Instance, Shift, RotaGroup, get_duty_officers)
 from tasks import run_status_check as _run_status_check
 from .graphite import get_data, get_matching_metrics
 
@@ -308,7 +308,8 @@ class ServiceForm(forms.ModelForm):
             'alerts',
             'alerts_enabled',
             'hackpad_id',
-            'tag'
+            'tag',
+            'rotagroup'
         )
         widgets = {
             'name': forms.TextInput(attrs={'style': 'width: 30%;'}),
@@ -328,12 +329,19 @@ class ServiceForm(forms.ModelForm):
             }),
             'users_to_notify': forms.CheckboxSelectMultiple(),
             'hackpad_id': forms.TextInput(attrs={'style': 'width:30%;'}),
+            'rotagroup': forms.Select(
+                attrs={
+                'data-rel': 'chosen',
+                'style': 'width: 20%',
+            })
         }
 
     def __init__(self, *args, **kwargs):
         ret = super(ServiceForm, self).__init__(*args, **kwargs)
+
         self.fields['users_to_notify'].queryset = User.objects.filter(
             is_active=True).order_by('first_name', 'last_name')
+        self.fields['rotagroup'].queryset = RotaGroup.objects.all()
         return ret
 
     def clean_hackpad_id(self):
