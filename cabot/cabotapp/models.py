@@ -188,11 +188,11 @@ class CheckGroupMixin(models.Model):
             self.last_alert_sent = None
         self.save()
         if self.unexpired_acknowledgement():
-            send_alert_update(self, duty_officers=get_duty_officers())
+            send_alert_update(self, duty_officers=get_duty_officers(service=self))
         else:
             self.snapshot.did_send_alert = True
             self.snapshot.save()
-            send_alert(self, duty_officers=get_duty_officers())
+            send_alert(self, duty_officers=get_duty_officers(service=self))
 
     def unexpired_acknowledgements(self):
         acknowledgements = self.alertacknowledgement_set.all().filter(
@@ -951,7 +951,7 @@ class Shift(models.Model):
         return "%s: %s to %s%s" % (self.group.name, self.start, self.end, deleted)
 
 
-def get_duty_officers(at_time=None):
+def get_duty_officers(at_time=None, service=None):
     """Returns a list of duty officers for a given time or now if none given"""
     duty_officers = []
     if not at_time:
@@ -960,6 +960,7 @@ def get_duty_officers(at_time=None):
         deleted=False,
         start__lt=at_time,
         end__gt=at_time,
+        group=service.rotagroup
     )
     if current_shifts:
         for shift in current_shifts:
