@@ -35,9 +35,15 @@ class AlertPluginUserData(PolymorphicModel):
 
 def send_alert(service, duty_officers=None):
     users = service.users_to_notify.filter(is_active=True)
+
     for alert in service.alerts.all():
+        user_to_send = users
+
+        if 'Twilio' in alert.name and duty_officers is not None:
+            user_to_send = []
+
         try:
-            alert.send_alert(service, users, duty_officers)
+            alert.send_alert(service, user_to_send, duty_officers)
         except Exception as e:
             logging.exception('Could not send %s alert: %s' % (alert.name, e))
 

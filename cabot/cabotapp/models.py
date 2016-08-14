@@ -962,7 +962,9 @@ def get_duty_officers(at_time=None):
         end__gt=at_time,
     )
     if current_shifts:
-        duty_officers = [shift.user for shift in current_shifts]
+        for shift in current_shifts:
+            duty_officers += [u for u in shift.users.all()]
+
         return duty_officers
     else:
         try:
@@ -983,12 +985,6 @@ def update_shifts():
     for g in groups:
         group_lookup[g.name.lower()] = g
 
-    users = User.objects.all()
-    user_lookup = {}
-    
-    for u in users:
-        user_lookup[u.email.lower()] = u
-
     for event in events:
         g = event['group'].lower().strip()
 
@@ -1007,8 +1003,12 @@ def update_shifts():
             if not isinstance(event['attendee'], list):
                 event['attendee'] = [event['attendee']]
 
-            for user in event['attendee']:
-                user = user.replace('mailto:', '')
+            add_user_shifts(s, event['attendee'])
 
-                if user in user_lookup:
-                    s.users.add(user_lookup[user])
+def add_user_shifts(shift, users):
+    for user in users:
+        user = user.replace('mailto:', '')
+        user = User.objects.filter(email=user)[0]
+
+        if user:
+            shift.users.add(user)
