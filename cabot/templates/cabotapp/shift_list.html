@@ -1,13 +1,47 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row">
-  <div class="col-xs-12">
-    <div class="col-xs-1"><h2><i class="glyphicon glyphicon-time"></i></h2></div>
-    <div class="col-xs-11"><h2><span class="break"></span>Duty rota</h2></div>
+<div class="row sortable ui-sortable">
+  <div class="col-xs-12" data-original-title="">
+    <div class="col-xs-1"><h2><i class="glyphicon glyphicon-tint"></i></h2></div>
+    <div class="col-xs-10"><h2><span class="break"></span>Groups</h2></div>
   </div>
+  
   <div class="col-xs-12">
-    {% if not shifts %}
+    {% if not data.groups %}
+      <div class="col-xs-11 col-xs-offset-1">No rota groups configured</div>
+    {% else %}
+    <table class="table table-striped bootstrap-datatable datatable">
+      <thead>
+        <tr>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for group in data.groups %}
+        <tr>
+          <td>
+            <a>{{ group.name }}</a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xs-12" data-original-title="">
+    <div class="col-xs-1"><h2><i class="glyphicon glyphicon-time"></i></h2></div>
+    <div class="col-xs-10"><h2><span class="break"></span>Duty rota</h2></div>
+    <div class="col-xs-1 text-right">
+      <h2><a href="{% url "create-service" %}" title="New group"><i class="glyphicon glyphicon-plus"></i></a></h2>
+    </div>
+  </div>
+
+  <div class="col-xs-12">
+    {% if not data.shifts %}
       <div class="col-xs-11 col-xs-offset-1">No shifts downloaded</div>
     {% else %}
     <table class="table table-striped bootstrap-datatable datatable">
@@ -19,10 +53,10 @@
         </tr>
       </thead>
       <tbody>
-      {% for shift in shifts %}
+      {% for shift in data.shifts %}
         <tr>
           <td>
-            <a href="{% url "user-profile" pk=shift.user.id %}">{{ shift.user.username }}</a>
+            <a href="">{{ shift.group.name }}</a>
           </td>
           <td>
             {{ shift.start }} - {{ shift.end }}

@@ -925,24 +925,30 @@ class UserProfile(models.Model):
     fallback_alert_user = models.BooleanField(default=False)
 
 
+class RotaGroup(models.Model):
+    name = models.TextField(null=False)
+
+    def __unicode__(self):
+        return self.name
+
+
 class Shift(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField()
-    user = models.ForeignKey(User)
+    group = models.ForeignKey(RotaGroup)
     uid = models.TextField()
     deleted = models.BooleanField(default=False)
+    users = models.ManyToManyField(
+        User,
+        blank=False,
+        null=False
+    )
 
     def __unicode__(self):
         deleted = ''
         if self.deleted:
             deleted = ' (deleted)'
-        return "%s: %s to %s%s" % (self.user.username, self.start, self.end, deleted)
-
-class RotaGroup(models.Model):
-    name = models.TextField(null=False)
-
-    def __unicode__(self):
-        return "RotaGroup %s" % (self.name)
+        return "%s: %s to %s%s" % (self.group.name, self.start, self.end, deleted)
 
 
 def get_duty_officers(at_time=None):
@@ -968,23 +974,41 @@ def get_duty_officers(at_time=None):
 
 def update_shifts():
     events = get_events()
-    users = User.objects.filter(is_active=True)
-    user_lookup = {}
-    for u in users:
-        user_lookup[u.username.lower()] = u
     future_shifts = Shift.objects.filter(start__gt=timezone.now())
     future_shifts.update(deleted=True)
 
+    groups = RotaGroup.objects.all()
+    group_lookup = {}
+    
+    for g in groups:
+        group_lookup[g.name.lower()] = g
+
+    users = User.objects.all()
+    user_lookup = {}
+    
+    for u in users:
+        user_lookup[u.email.lower()] = u
+
     for event in events:
-        e = event['summary'].lower().strip()
-        if e in user_lookup:
-            user = user_lookup[e]
+        g = event['group'].lower().strip()
+
+        if g in group_lookup:
+            group = group_lookup[g]
             try:
                 s = Shift.objects.get(uid=event['uid'])
             except Shift.DoesNotExist:
                 s = Shift(uid=event['uid'])
             s.start = event['start']
             s.end = event['end']
-            s.user = user
+            s.group = group
             s.deleted = False
             s.save()
+
+            if not isinstance(event['attendee'], list):
+                event['attendee'] = [event['attendee']]
+
+            for user in event['attendee']:
+                user = user.replace('mailto:', '')
+
+                if user in user_lookup:
+                    s.users.add(user_lookup[user])

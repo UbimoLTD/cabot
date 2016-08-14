@@ -94,7 +94,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'start': ('django.db.models.fields.DateTimeField', [], {}),
             'uid': ('django.db.models.fields.TextField', [], {}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['cabotapp.rotagroup']"})
         },
         'cabotapp.statuscheck': {
             'Meta': {'ordering': "['name']", 'object_name': 'StatusCheck'},

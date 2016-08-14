@@ -14,10 +14,12 @@ def get_events():
     events = []
     for component in get_calendar_data().walk():
         if component.name == 'VEVENT':
+            gruop = component.decoded('summary').split(' ', 1)[0]
             events.append({
+                'group': gruop,
                 'start': component.decoded('dtstart'),
                 'end': component.decoded('dtend'),
-                'summary': component.decoded('summary'),
+                'attendee': component.get('attendee'),
                 'uid': component.decoded('uid'),
             })
     return events

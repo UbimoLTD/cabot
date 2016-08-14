@@ -742,12 +742,16 @@ class InstanceDeleteView(LoginRequiredMixin, DeleteView):
 
 class ShiftListView(LoginRequiredMixin, ListView):
     model = Shift
-    context_object_name = 'shifts'
+    context_object_name = 'data'
+    template_name = 'cabotapp/shift_list.html'
 
     def get_queryset(self):
-        return Shift.objects.filter(
+        shifts = Shift.objects.filter(
             end__gt=datetime.utcnow().replace(tzinfo=utc),
             deleted=False).order_by('start')
+        groups = RotaGroup.objects.all()
+
+        return { 'shifts': shifts, 'groups': groups }
 
 
 class StatusCheckReportView(LoginRequiredMixin, TemplateView):
