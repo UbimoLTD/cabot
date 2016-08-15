@@ -39,13 +39,10 @@ def subscriptions(request):
     """ Simple list of all checks """
     t = loader.get_template('cabotapp/subscriptions.html')
     services = Service.objects.all()
-    users = User.objects.filter(is_active=True)
+    users = User.objects.filter(is_active=True, rotagroup__isnull=False)
     duty_officers = []
 
     for service in services:
-        if not service.rotagroup:
-            continue
-        
         duty_officers += get_duty_officers(service=service)
 
     c = RequestContext(request, {
