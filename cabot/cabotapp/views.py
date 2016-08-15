@@ -41,11 +41,9 @@ def subscriptions(request):
     services = Service.objects.all()
     users = User.objects.filter(is_active=True)
     duty_officers = []
+    services_duty = Service.objects.filter(rotagroup__isnull=False)
 
-    for service in services:
-        if service.rotagroup is None:
-            continue
-        
+    for service in services_duty:
         duty_officers += get_duty_officers(service=service)
 
     c = RequestContext(request, {
