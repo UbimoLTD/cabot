@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row sortable ui-sortable">
+<div class="row sortable ui-sortable pull-right" style="width: 40%">
   <div class="col-xs-12" data-original-title="">
     <div class="col-xs-1"><h2><i class="glyphicon glyphicon-tint"></i></h2></div>
     <div class="col-xs-10"><h2><span class="break"></span>Groups</h2></div>
     <div class="col-xs-1 text-right">
-      <h2><a href="{% url "create-service" %}" title="New group"><i class="glyphicon glyphicon-plus"></i></a></h2>
+      <h2><a href="{% url "create-group" %}" title="New group"><i class="glyphicon glyphicon-plus"></i></a></h2>
     </div>
   </div>
   
@@ -18,6 +18,7 @@
       <thead>
         <tr>
           <th>Name</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -25,6 +26,10 @@
         <tr>
           <td>
             <a>{{ group.name }}</a>
+          </td>
+
+          <td>
+            <a class="btn btn-xs" href="{% url "delete-group" group.id %}">Delete group</a>
           </td>
         </tr>
       {% endfor %}
@@ -34,7 +39,7 @@
   </div>
 </div>
 
-<div class="row">
+<div class="row pull-left" style="width: 60%">
   <div class="col-xs-12" data-original-title="">
     <div class="col-xs-1"><h2><i class="glyphicon glyphicon-time"></i></h2></div>
     <div class="col-xs-10"><h2><span class="break"></span>Duty rota</h2></div>

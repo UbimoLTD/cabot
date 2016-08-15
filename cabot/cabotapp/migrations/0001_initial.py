@@ -43,7 +43,7 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')
              (primary_key=True)),
             ('name', self.gf('django.db.models.fields.TextField')
-             (null=False))
+             (null=False, unique=True))
         ))
         db.send_create_signal('cabotapp', ['RotaGroup'])
 
@@ -272,7 +272,7 @@ class Migration(SchemaMigration):
         },
         'cabotapp.rotagroup': {
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'url': ('django.db.models.fields.TextField', [], {'null': 'False'}),
+            'name': ('django.db.models.fields.TextField', [], {'null': 'False', 'unique': 'True'}),
         },
         'cabotapp.servicestatussnapshot': {
             'Meta': {'object_name': 'ServiceStatusSnapshot'},

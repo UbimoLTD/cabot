@@ -926,7 +926,7 @@ class UserProfile(models.Model):
 
 
 class RotaGroup(models.Model):
-    name = models.TextField(null=False)
+    name = models.TextField(null=False, unique=True)
 
     def __unicode__(self):
         return self.name

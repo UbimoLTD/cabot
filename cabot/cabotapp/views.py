@@ -40,10 +40,15 @@ def subscriptions(request):
     t = loader.get_template('cabotapp/subscriptions.html')
     services = Service.objects.all()
     users = User.objects.filter(is_active=True)
+    duty_officers = []
+
+    for service in services:
+        duty_officers += get_duty_officers(service=service)
+
     c = RequestContext(request, {
         'services': services,
         'users': users,
-        'duty_officers': get_duty_officers(),
+        'duty_officers': duty_officers,
     })
     return HttpResponse(t.render(c))
 
@@ -576,6 +581,19 @@ class UserProfileUpdateAlert(LoginRequiredMixin, View):
                 return HttpResponseRedirect(reverse('update-alert-user-data', args=(self.kwargs['pk'], alerttype)))
 
 
+
+class RotaGroupForm(forms.ModelForm):
+    class Meta:
+        model = RotaGroup
+        fields = (
+            'name',
+        )
+
+        widgets = {
+            'name': forms.TextInput(attrs={'style': 'width: 30%;'})
+        }
+
+
 def get_object_form(model_type):
     class AlertPreferencesForm(forms.ModelForm):
         class Meta:
@@ -709,7 +727,6 @@ class ServiceCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('service', kwargs={'pk': self.object.id})
 
-
 class InstanceUpdateView(LoginRequiredMixin, UpdateView):
     model = Instance
     form_class = InstanceForm
@@ -752,6 +769,21 @@ class ShiftListView(LoginRequiredMixin, ListView):
         groups = RotaGroup.objects.all()
 
         return { 'shifts': shifts, 'groups': groups }
+
+
+class RotaGroupDeleteView(LoginRequiredMixin, DeleteView):
+    model = RotaGroup
+    success_url = reverse_lazy('shifts')
+    context_object_name = 'rotagroup'
+    template_name = 'cabotapp/rotagroup_confirm_delete.html'
+
+
+class RotaGroupCreateView(LoginRequiredMixin, CreateView):
+    model = RotaGroup
+    form_class = RotaGroupForm
+
+    def get_success_url(self):
+        return reverse('shifts')
 
 
 class StatusCheckReportView(LoginRequiredMixin, TemplateView):

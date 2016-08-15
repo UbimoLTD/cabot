@@ -8,60 +8,34 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Instance'
-        db.create_table('cabotapp_instance', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.TextField')()),
-            ('last_alert_sent', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('email_alert', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('hipchat_alert', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('sms_alert', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('telephone_alert', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('alerts_enabled', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('overall_status', self.gf('django.db.models.fields.TextField')(default='PASSING')),
-            ('old_overall_status', self.gf('django.db.models.fields.TextField')(default='PASSING')),
-            ('hackpad_id', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('address', self.gf('django.db.models.fields.TextField')(blank=True)),
+        ## Adding model 'RotaGroup'
+        db.create_table('cabotapp_rotagroup', (
+            ('id', self.gf('django.db.models.fields.AutoField')
+             (primary_key=True)),
+            ('name', self.gf('django.db.models.fields.TextField')
+             (null=False, unique=True))
         ))
-        db.send_create_signal('cabotapp', ['Instance'])
+        db.send_create_signal('cabotapp', ['RotaGroup'])
 
-        # Adding M2M table for field users_to_notify on 'Instance'
-        db.create_table('cabotapp_instance_users_to_notify', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('instance', models.ForeignKey(orm['cabotapp.instance'], null=False)),
-            ('user', models.ForeignKey(orm['auth.user'], null=False))
+        # Adding M2M table for field user on 'Shift'
+        db.create_table('cabotapp_shift_users', (
+            ('id', models.AutoField(verbose_name='ID',
+             primary_key=True, auto_created=True)),
+            ('shift', self.gf('django.db.models.fields.related.ForeignKey')
+             (to=orm['cabotapp.shift'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')
+             (to=orm['auth.User']))
         ))
-        db.create_unique('cabotapp_instance_users_to_notify', ['instance_id', 'user_id'])
-
-        # Adding M2M table for field status_checks on 'Instance'
-        db.create_table('cabotapp_instance_status_checks', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('instance', models.ForeignKey(orm['cabotapp.instance'], null=False)),
-            ('statuscheck', models.ForeignKey(orm['cabotapp.statuscheck'], null=False))
-        ))
-        db.create_unique('cabotapp_instance_status_checks', ['instance_id', 'statuscheck_id'])
-
-        # Adding M2M table for field instances on 'Service'
-        db.create_table('cabotapp_service_instances', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('service', models.ForeignKey(orm['cabotapp.service'], null=False)),
-            ('instance', models.ForeignKey(orm['cabotapp.instance'], null=False))
-        ))
-        db.create_unique('cabotapp_service_instances', ['service_id', 'instance_id'])
+        db.create_unique('cabotapp_shift_users',
+                         ['shift_id', 'user_id'])
 
 
     def backwards(self, orm):
-        # Deleting model 'Instance'
-        db.delete_table('cabotapp_instance')
+        # Deleting model 'RotaGroup'
+        db.delete_table('cabotapp_rotagroup')
 
-        # Removing M2M table for field users_to_notify on 'Instance'
-        db.delete_table('cabotapp_instance_users_to_notify')
-
-        # Removing M2M table for field status_checks on 'Instance'
-        db.delete_table('cabotapp_instance_status_checks')
-
-        # Removing M2M table for field instances on 'Service'
-        db.delete_table('cabotapp_service_instances')
+        # Deleting able for field user on 'Shift'
+        db.delete_table('cabotapp_shift_users')
 
 
     models = {
