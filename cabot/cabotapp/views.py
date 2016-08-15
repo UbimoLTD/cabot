@@ -26,7 +26,7 @@ from models import (
     StatusCheckResult, UserProfile, Service, Instance, Shift, RotaGroup, get_duty_officers)
 from tasks import run_status_check as _run_status_check
 from .graphite import get_data, get_matching_metrics
-
+import logging
 
 class LoginRequiredMixin(object):
     @method_decorator(login_required)
@@ -767,7 +767,10 @@ class ShiftListView(LoginRequiredMixin, ListView):
         shifts = Shift.objects.filter(
             end__gt=datetime.utcnow().replace(tzinfo=utc),
             deleted=False).order_by('start')
-        groups = RotaGroup.objects.all()
+        groups = RotaGroup.objects.select_related('service').all()
+
+        for group in groups:
+            group.services = ','.join([service.name for service in group.service_set.all()])
 
         return { 'shifts': shifts, 'groups': groups }
 

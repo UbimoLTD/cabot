@@ -298,9 +298,10 @@ class Service(CheckGroupMixin):
         help_text='Event tag of service'
     )
 
-    rotagroup = models.OneToOneField(
+    rotagroup = models.ForeignKey(
         'RotaGroup',
         blank=True,
+        null=True,
         help_text='Rota group for duty'
     )
 
