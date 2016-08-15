@@ -38,11 +38,14 @@ class LoginRequiredMixin(object):
 def subscriptions(request):
     """ Simple list of all checks """
     t = loader.get_template('cabotapp/subscriptions.html')
-    services = Service.objects.filter(rotagroup__isnull=False)
+    services = Service.objects.all()
     users = User.objects.filter(is_active=True)
     duty_officers = []
 
     for service in services:
+        if service.rotagroup is None:
+            continue
+        
         duty_officers += get_duty_officers(service=service)
 
     c = RequestContext(request, {
