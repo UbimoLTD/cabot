@@ -68,7 +68,7 @@ class Migration(SchemaMigration):
         },
         'cabotapp.rotagroup': {
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.TextField', [], {'null': 'False', 'unique': 'True'}),
+            'name': ('django.db.models.fields.TextField', [], {'null': 'False'}),
         },
         'cabotapp.servicestatussnapshot': {
             'Meta': {'object_name': 'ServiceStatusSnapshot'},
