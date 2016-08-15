@@ -13,6 +13,7 @@
           <th>Overall</th>
           <th>Active checks</th>
           <th>Disabled checks</th>
+          <th>Rota group</th>
           <th>Acknowledgment</th>
           <th></th>
         </tr>
@@ -32,6 +33,7 @@
           <td>
             <span class="label label-{% if service.inactive_status_checks.all.count > 0 %}warning{% else %}default{% endif %}">{{ service.inactive_status_checks.all.count }}</span>
           </td>
+          <td>{{service.rotagroup.name}}</td>
           <td>
   {% if service.overall_status != service.PASSING_STATUS %}
 {#  <div class="col-xs-12 alert alert-warning">#}
