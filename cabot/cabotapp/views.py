@@ -43,9 +43,9 @@ def subscriptions(request):
     duty_officers = []
 
     for service in services:
-        if not service.group:
+        if not service.rotagroup:
             continue
-        
+        1
         duty_officers += get_duty_officers(service=service)
 
     c = RequestContext(request, {
