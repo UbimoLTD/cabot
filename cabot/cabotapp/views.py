@@ -23,7 +23,7 @@ from django.views.generic import (
 from models import AlertPluginUserData
 from models import (
     StatusCheck, GraphiteStatusCheck, JenkinsStatusCheck, HttpStatusCheck, ICMPStatusCheck,
-    StatusCheckResult, UserProfile, Service, Instance, Shift, RotaGroup, get_duty_officers)
+    StatusCheckResult, UserProfile, Service, Instance, Shift, Group, get_duty_officers)
 from tasks import run_status_check as _run_status_check
 from .graphite import get_data, get_matching_metrics
 import logging
@@ -41,7 +41,7 @@ def subscriptions(request):
     services = Service.objects.all()
     users = User.objects.filter(is_active=True)
     duty_officers = []
-    services_duty = Service.objects.filter(rotagroup__isnull=False)
+    services_duty = Service.objects.filter(group__isnull=False)
 
     for service in services_duty:
         duty_officers += get_duty_officers(service=service)
@@ -315,7 +315,7 @@ class ServiceForm(forms.ModelForm):
             'alerts_enabled',
             'hackpad_id',
             'tag',
-            'rotagroup'
+            'group'
         )
         widgets = {
             'name': forms.TextInput(attrs={'style': 'width: 30%;'}),
@@ -335,7 +335,7 @@ class ServiceForm(forms.ModelForm):
             }),
             'users_to_notify': forms.CheckboxSelectMultiple(),
             'hackpad_id': forms.TextInput(attrs={'style': 'width:30%;'}),
-            'rotagroup': forms.Select(
+            'group': forms.Select(
                 attrs={
                 'data-rel': 'chosen',
                 'style': 'width: 20%',
@@ -347,7 +347,7 @@ class ServiceForm(forms.ModelForm):
 
         self.fields['users_to_notify'].queryset = User.objects.filter(
             is_active=True).order_by('first_name', 'last_name')
-        self.fields['rotagroup'].queryset = RotaGroup.objects.all()
+        self.fields['group'].queryset = Group.objects.all()
         return ret
 
     def clean_hackpad_id(self):
@@ -583,16 +583,26 @@ class UserProfileUpdateAlert(LoginRequiredMixin, View):
 
 
 
-class RotaGroupForm(forms.ModelForm):
+class GroupForm(forms.ModelForm):
     class Meta:
-        model = RotaGroup
+        model = Group
         fields = (
             'name',
+            'alerts',
         )
 
         widgets = {
-            'name': forms.TextInput(attrs={'style': 'width: 30%;'})
+            'name': forms.TextInput(attrs={'style': 'width: 30%;'}),
+            'alerts': forms.SelectMultiple(attrs={
+                'data-rel': 'chosen',
+                'style': 'width: 70%',
+            }),
         }
+
+        def __init__(self, *args, **kwargs):
+            ret = super(InstanceForm, self).__init__(*args, **kwargs)
+            self.fields['alerts'].queryset = AlertPluginUserData.objects.all()
+            return ret
 
 
 def get_object_form(model_type):
@@ -767,7 +777,7 @@ class ShiftListView(LoginRequiredMixin, ListView):
         shifts = Shift.objects.filter(
             end__gt=datetime.utcnow().replace(tzinfo=utc),
             deleted=False).order_by('start')
-        groups = RotaGroup.objects.select_related('service').all()
+        groups = Group.objects.select_related('service').all()
 
         for group in groups:
             group.services = ','.join([service.name for service in group.service_set.all()])
@@ -775,16 +785,24 @@ class ShiftListView(LoginRequiredMixin, ListView):
         return { 'shifts': shifts, 'groups': groups }
 
 
-class RotaGroupDeleteView(LoginRequiredMixin, DeleteView):
-    model = RotaGroup
+class GroupDeleteView(LoginRequiredMixin, DeleteView):
+    model = Group
     success_url = reverse_lazy('shifts')
-    context_object_name = 'rotagroup'
-    template_name = 'cabotapp/rotagroup_confirm_delete.html'
+    context_object_name = 'group'
+    template_name = 'cabotapp/group_confirm_delete.html'
 
 
-class RotaGroupCreateView(LoginRequiredMixin, CreateView):
-    model = RotaGroup
-    form_class = RotaGroupForm
+class GroupCreateView(LoginRequiredMixin, CreateView):
+    model = Group
+    form_class = GroupForm
+
+    def get_success_url(self):
+        return reverse('shifts')
+
+
+class GroupUpdateView(LoginRequiredMixin, UpdateView):
+    model = Group
+    form_class = GroupForm
 
     def get_success_url(self):
         return reverse('shifts')

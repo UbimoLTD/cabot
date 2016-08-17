@@ -9,7 +9,10 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Adding field 'Service.group'
-        db.add_column(u'cabotapp_service', 'rotagroup',
+        db.add_column(u'cabotapp_service', 'tag',
+                      self.gf('django.db.models.fields.TextField')(null=True, blank=True),
+                      keep_default=False)
+        db.add_column(u'cabotapp_service', 'group',
                       self.gf('django.db.models.fields.related.ForeignKey')(to=orm['cabotapp.group'], null=True),
                       keep_default=False)
 
@@ -19,23 +22,24 @@ class Migration(SchemaMigration):
                       keep_default=False)
 
         # Deleting field 'Shift.user'
-        db.delete_column(u'cabotapp_service', 'user')
+        db.delete_column(u'cabotapp_shift', 'user_id')
 
-        # Adding M2M table for field users_to_notify on 'Service'
-        db.create_table('cabotapp_group_alert', (
+        # Adding M2M table for field alerts on 'group'
+        db.create_table('cabotapp_group_alerts', (
             ('id', models.AutoField(verbose_name='ID',
              primary_key=True, auto_created=True)),
             ('group',
-             models.ForeignKey(orm['cabotapp.rotagroup'], null=False)),
-            ('alert', models.ForeignKey(orm['cabotapp.alertplugin'], null=False))
+             models.ForeignKey(orm['cabotapp.group'], null=False)),
+            ('alertplugin', models.ForeignKey(orm['cabotapp.alertplugin'], null=False))
         ))
-        db.create_unique('cabotapp_group_alert',
-                         ['group_id', 'alert_id'])
+        db.create_unique('cabotapp_group_alerts',
+                         ['group_id', 'alertplugin_id'])
 
 
     def backwards(self, orm):
         # Deleting field 'Service.group' and 'Shift.group'
         db.delete_column(u'cabotapp_service', 'group')
+        db.delete_column(u'cabotapp_service', 'tag')
         db.delete_column(u'cabotapp_shift', 'group')
 
         # Adding field 'Shift.user'
@@ -44,7 +48,7 @@ class Migration(SchemaMigration):
                       keep_default=False)
 
         # Delete table 'group_alerts'
-        db.delete_table(u'cabotapp_group_alert')
+        db.delete_table(u'cabotapp_group_alerts')
 
 
     models = {
@@ -138,10 +142,10 @@ class Migration(SchemaMigration):
             'telephone_alert': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'url': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'tag': ('django.db.models.fields.TextField', [], {'blank': 'True', 'null': 'True'}),
-            'group': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['cabotapp.rotagroup']", 'blank': 'True', 'null': 'True'}),
+            'group': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['cabotapp.group']", 'blank': 'True', 'null': 'True'}),
             'users_to_notify': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False', 'blank': 'True'})
         },
-        u'cabotapp.rotagroup': {
+        u'cabotapp.group': {
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.TextField', [], {'null': 'False'}),
         },

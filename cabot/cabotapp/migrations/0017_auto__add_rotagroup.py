@@ -8,14 +8,14 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        ## Adding model 'RotaGroup'
-        db.create_table('cabotapp_rotagroup', (
+        ## Adding model 'group'
+        db.create_table('cabotapp_group', (
             ('id', self.gf('django.db.models.fields.AutoField')
              (primary_key=True)),
             ('name', self.gf('django.db.models.fields.TextField')
              (null=False))
         ))
-        db.send_create_signal('cabotapp', ['RotaGroup'])
+        db.send_create_signal('cabotapp', ['group'])
 
         # Adding M2M table for field user on 'Shift'
         db.create_table('cabotapp_shift_users', (
@@ -31,8 +31,8 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        # Deleting model 'RotaGroup'
-        db.delete_table('cabotapp_rotagroup')
+        # Deleting model 'group'
+        db.delete_table('cabotapp_group')
 
         # Deleting able for field user on 'Shift'
         db.delete_table('cabotapp_shift_users')
@@ -101,10 +101,9 @@ class Migration(SchemaMigration):
             'status_checks': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['cabotapp.StatusCheck']", 'symmetrical': 'False', 'blank': 'True'}),
             'telephone_alert': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'url': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'tag': ('django.db.models.fields.TextField', [], {'blank': 'True', 'null': 'True'}),
             'users_to_notify': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False', 'blank': 'True'})
         },
-        'cabotapp.rotagroup': {
+        'cabotapp.group': {
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.TextField', [], {'null': 'False'}),
         },

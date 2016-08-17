@@ -16,7 +16,7 @@ from cabot.cabotapp.views import (InstanceListView, InstanceDetailView,
     ServiceListView, ServiceDetailView,
     ServiceUpdateView, ServiceCreateView, ServiceDeleteView,
     UserProfileUpdateView, ShiftListView, subscriptions,
-    RotaGroupDeleteView, RotaGroupCreateView)
+    GroupDeleteView, GroupCreateView, GroupUpdateView)
 
 from cabot import rest_urls
 
@@ -129,11 +129,16 @@ urlpatterns = patterns('',
 
      url(r'^shifts/', view=ShiftListView.as_view(),
              name='shifts'),
+
      url(r'^group/delete/(?P<pk>\d+)/',
-             view=RotaGroupDeleteView.as_view(
+             view=GroupDeleteView.as_view(
              ), name='delete-group'),
-     url(r'^group/create/', view=RotaGroupCreateView.as_view(),
+     url(r'^group/create/',
+             view=GroupCreateView.as_view(),
              name='create-group'),
+     url(r'^group/update/(?P<pk>\d+)/',
+             view=GroupUpdateView.as_view(
+             ), name='update-group'),
 
      url(r'^graphite/', view=graphite_api_data,
              name='graphite-data'),

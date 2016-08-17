@@ -298,8 +298,8 @@ class Service(CheckGroupMixin):
         help_text='Event tag of service'
     )
 
-    rotagroup = models.ForeignKey(
-        'RotaGroup',
+    group = models.ForeignKey(
+        'Group',
         blank=True,
         null=True,
         help_text='Rota group for duty'
@@ -926,8 +926,13 @@ class UserProfile(models.Model):
     fallback_alert_user = models.BooleanField(default=False)
 
 
-class RotaGroup(models.Model):
+class Group(models.Model):
     name = models.TextField(null=False, unique=True)
+    alerts = models.ManyToManyField(
+        'AlertPlugin',
+        blank=True,
+        help_text='Alerts channels through which you wish to be notified'
+    )
 
     def __unicode__(self):
         return self.name
@@ -936,7 +941,7 @@ class RotaGroup(models.Model):
 class Shift(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField()
-    group = models.ForeignKey(RotaGroup)
+    group = models.ForeignKey(Group)
     uid = models.TextField()
     deleted = models.BooleanField(default=False)
     users = models.ManyToManyField(
@@ -961,7 +966,7 @@ def get_duty_officers(at_time=None, service=None):
         deleted=False,
         start__lt=at_time,
         end__gt=at_time,
-        group=service.rotagroup
+        group=service.group
     )
     if current_shifts:
         for shift in current_shifts:
@@ -981,7 +986,7 @@ def update_shifts():
     future_shifts = Shift.objects.filter(start__gt=timezone.now())
     future_shifts.update(deleted=True)
 
-    groups = RotaGroup.objects.all()
+    groups = Group.objects.all()
     group_lookup = {}
     
     for g in groups:

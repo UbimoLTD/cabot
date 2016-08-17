@@ -19,21 +19,16 @@
         <tr>
           <th>Name</th>
           <th>Services</th>
-          <th></th>
         </tr>
       </thead>
       <tbody>
       {% for group in data.groups %}
         <tr>
           <td>
-            <a>{{ group.name }}</a>
+            <a href="{% url "update-group" group.id %}">{{ group.name }}</a>
           </td>
 
           <td>{{ group.services }}</td>
-
-          <td>
-            <a class="btn btn-xs" href="{% url "delete-group" group.id %}">Delete group</a>
-          </td>
         </tr>
       {% endfor %}
       </tbody>

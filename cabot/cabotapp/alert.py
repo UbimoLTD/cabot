@@ -38,8 +38,9 @@ def send_alert(service, duty_officers=None):
 
     for alert in service.alerts.all():
         user_to_send = users
+        group_alert = service.group.alerts.filter(title=alert.title)
 
-        if 'Twilio' in alert.name and duty_officers is not None:
+        if duty_officers and group_alert:
             user_to_send = []
 
         try:
