@@ -32,20 +32,8 @@ class Migration(SchemaMigration):
              self.gf('django.db.models.fields.TextField')(default='PASSING')),
             ('hackpad_id', self.gf('django.db.models.fields.TextField')
              (null=True, blank=True)),
-            ('tag', self.gf('django.db.models.fields.TextField')
-             (null=True, blank=True)),
-            ('rotagroup', models.ForeignKey(orm['cabotapp.RotaGroup'], null=True))
         ))
         db.send_create_signal('cabotapp', ['Service'])
-
-        ## Adding model 'RotaGroup'
-        db.create_table('cabotapp_rotagroup', (
-            ('id', self.gf('django.db.models.fields.AutoField')
-             (primary_key=True)),
-            ('name', self.gf('django.db.models.fields.TextField')
-             (null=False))
-        ))
-        db.send_create_signal('cabotapp', ['RotaGroup'])
 
         # Adding M2M table for field users_to_notify on 'Service'
         db.create_table('cabotapp_service_users_to_notify', (
@@ -176,25 +164,13 @@ class Migration(SchemaMigration):
              (primary_key=True)),
             ('start', self.gf('django.db.models.fields.DateTimeField')()),
             ('end', self.gf('django.db.models.fields.DateTimeField')()),
-            ('group', self.gf('django.db.models.fields.related.ForeignKey')
-             (to=orm['cabotapp.rotagroup'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')
+             (to=orm['auth.User'])),
             ('uid', self.gf('django.db.models.fields.TextField')()),
             ('deleted', self.gf('django.db.models.fields.BooleanField')
              (default=False)),
         ))
         db.send_create_signal('cabotapp', ['Shift'])
-
-        # Adding M2M table for field user on 'Shift'
-        db.create_table('cabotapp_shift_users', (
-            ('id', models.AutoField(verbose_name='ID',
-             primary_key=True, auto_created=True)),
-            ('shift', self.gf('django.db.models.fields.related.ForeignKey')
-             (to=orm['cabotapp.shift'])),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')
-             (to=orm['auth.User']))
-        ))
-        db.create_unique('cabotapp_shift_users',
-                         ['shift_id', 'user_id'])
 
     def backwards(self, orm):
         # Deleting model 'Service'
@@ -266,13 +242,7 @@ class Migration(SchemaMigration):
             'status_checks': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['cabotapp.StatusCheck']", 'symmetrical': 'False', 'blank': 'True'}),
             'telephone_alert': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'url': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'tag': ('django.db.models.fields.TextField', [], {'blank': 'True', 'null': 'True'}),
-            'rotagroup': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['cabotapp.rotagroup']", 'blank': 'True', 'null': 'True'}),
             'users_to_notify': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        'cabotapp.rotagroup': {
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.TextField', [], {'null': 'False'}),
         },
         'cabotapp.servicestatussnapshot': {
             'Meta': {'object_name': 'ServiceStatusSnapshot'},
@@ -292,8 +262,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'start': ('django.db.models.fields.DateTimeField', [], {}),
             'uid': ('django.db.models.fields.TextField', [], {}),
-            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['cabotapp.rotagroup']"}),
-            'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False', 'blank': 'False', 'null': 'False'})
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
         },
         'cabotapp.statuscheck': {
             'Meta': {'ordering': "['name']", 'object_name': 'StatusCheck'},
@@ -344,7 +313,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
+        }
     }
 
     complete_apps = ['cabotapp']

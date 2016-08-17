@@ -64,13 +64,7 @@ class Migration(SchemaMigration):
             'status_checks': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['cabotapp.StatusCheck']", 'symmetrical': 'False', 'blank': 'True'}),
             'telephone_alert': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'url': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'tag': ('django.db.models.fields.TextField', [], {'blank': 'True', 'null': 'True'}),
-            'rotagroup': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['cabotapp.rotagroup']", 'blank': 'True', 'null': 'True'}),
             'users_to_notify': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        'cabotapp.rotagroup': {
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.TextField', [], {'null': 'False'}),
         },
         'cabotapp.servicestatussnapshot': {
             'Meta': {'object_name': 'ServiceStatusSnapshot'},
@@ -90,7 +84,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'start': ('django.db.models.fields.DateTimeField', [], {}),
             'uid': ('django.db.models.fields.TextField', [], {}),
-            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['cabotapp.rotagroup']"})
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
         },
         'cabotapp.statuscheck': {
             'Meta': {'ordering': "['name']", 'object_name': 'StatusCheck'},
