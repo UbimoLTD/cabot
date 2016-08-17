@@ -15,7 +15,7 @@ class Migration(SchemaMigration):
 
         # Deleting field 'Shift.user'
         db.add_column(u'cabotapp_shift', 'group',
-                    self.gf('django.db.models.fields.related.ForeignKey')(to=orm['cabotapp.rotagroup'], null=True),
+                    self.gf('django.db.models.fields.related.ForeignKey')(to=orm['cabotapp.rotagroup'], null=False),
                     keep_default=False)
 
 
@@ -141,7 +141,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'start': ('django.db.models.fields.DateTimeField', [], {}),
             'uid': ('django.db.models.fields.TextField', [], {}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['cabotapp.rotagroup']", 'null': 'False'})
         },
         u'cabotapp.statuscheck': {
             'Meta': {'ordering': "['name']", 'object_name': 'StatusCheck'},
