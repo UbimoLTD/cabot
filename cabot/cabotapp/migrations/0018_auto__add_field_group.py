@@ -8,21 +8,43 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Service.rotagroup'
+        # Adding field 'Service.group'
         db.add_column(u'cabotapp_service', 'rotagroup',
-                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['cabotapp.rotagroup'], null=True),
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['cabotapp.group'], null=True),
+                      keep_default=False)
+
+        # Adding field 'Shift.group'
+        db.add_column(u'cabotapp_shift', 'group',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['cabotapp.group'], null=False),
                       keep_default=False)
 
         # Deleting field 'Shift.user'
-        db.add_column(u'cabotapp_shift', 'group',
-                    self.gf('django.db.models.fields.related.ForeignKey')(to=orm['cabotapp.rotagroup'], null=False),
-                    keep_default=False)
+        db.delete_column(u'cabotapp_service', 'user')
+
+        # Adding M2M table for field users_to_notify on 'Service'
+        db.create_table('cabotapp_group_alert', (
+            ('id', models.AutoField(verbose_name='ID',
+             primary_key=True, auto_created=True)),
+            ('group',
+             models.ForeignKey(orm['cabotapp.rotagroup'], null=False)),
+            ('alert', models.ForeignKey(orm['cabotapp.alertplugin'], null=False))
+        ))
+        db.create_unique('cabotapp_group_alert',
+                         ['group_id', 'alert_id'])
 
 
     def backwards(self, orm):
-        # Deleting field 'Service.rotagroup'
-        db.delete_column(u'cabotapp_service', 'rotagroup')
+        # Deleting field 'Service.group' and 'Shift.group'
+        db.delete_column(u'cabotapp_service', 'group')
         db.delete_column(u'cabotapp_shift', 'group')
+
+        # Adding field 'Shift.user'
+        db.add_column(u'cabotapp_shift', 'user',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User']),
+                      keep_default=False)
+
+        # Delete table 'group_alerts'
+        db.delete_table(u'cabotapp_group_alert')
 
 
     models = {
@@ -116,7 +138,7 @@ class Migration(SchemaMigration):
             'telephone_alert': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'url': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'tag': ('django.db.models.fields.TextField', [], {'blank': 'True', 'null': 'True'}),
-            'rotagroup': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['cabotapp.rotagroup']", 'blank': 'True', 'null': 'True'}),
+            'group': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['cabotapp.rotagroup']", 'blank': 'True', 'null': 'True'}),
             'users_to_notify': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False', 'blank': 'True'})
         },
         u'cabotapp.rotagroup': {
@@ -141,7 +163,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'start': ('django.db.models.fields.DateTimeField', [], {}),
             'uid': ('django.db.models.fields.TextField', [], {}),
-            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['cabotapp.rotagroup']", 'null': 'False'})
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['cabotapp.group']", 'null': 'False'})
         },
         u'cabotapp.statuscheck': {
             'Meta': {'ordering': "['name']", 'object_name': 'StatusCheck'},
@@ -188,6 +210,10 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'mobile_number': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '20', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'profile'", 'unique': 'True', 'to': u"orm['auth.User']"})
+        },
+        u'cabotapp.group_alerts': {
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.TextField', [], {'null': 'False'}),
         },
         u'contenttypes.contenttype': {
             'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
