@@ -35,12 +35,12 @@ class AlertPluginUserData(PolymorphicModel):
 
 def send_alert(service, duty_officers=None):
     users = service.users_to_notify.filter(is_active=True)
+    group_alerts = service.group.alerts.all()
 
     for alert in service.alerts.all():
         user_to_send = users
-        group_alert = service.group.alerts.filter(title=alert.title)
 
-        if duty_officers and group_alert:
+        if duty_officers and alert in group_alerts:
             user_to_send = []
 
         try:
