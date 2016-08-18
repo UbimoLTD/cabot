@@ -50,9 +50,9 @@
     <table class="table table-striped bootstrap-datatable datatable">
       <thead>
         <tr>
-          <th>User</th>
+          <th>Group</th>
           <th>Shift time</th>
-          <th></th>
+          <th>Users</th>
         </tr>
       </thead>
       <tbody>
@@ -65,9 +65,7 @@
             {{ shift.start }} - {{ shift.end }}
           </td>
           <td>
-            <a class="btn btn-xs" href="">
-              <i class="glyphicon glyphicon-share"></i><span class="break"></span>
-            </a>
+            {{ shift.users_list }}
           </td>
         </tr>
       {% endfor %}

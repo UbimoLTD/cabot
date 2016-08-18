@@ -1013,9 +1013,17 @@ def update_shifts():
             add_user_shifts(s, event['attendee'])
 
 def add_user_shifts(shift, users):
+    old_users = list(shift.users.all())
+
     for user in users:
         user = user.replace('mailto:', '')
-        user = User.objects.filter(email=user)[0]
+        user = User.objects.filter(email=user)
 
         if user:
-            shift.users.add(user)
+            shift.users.add(user[0])
+
+            if user[0] in old_users:
+                old_users.remove(user[0])
+
+    for user in old_users:
+        shift.users.remove(user)

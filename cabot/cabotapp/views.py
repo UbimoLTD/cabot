@@ -780,7 +780,10 @@ class ShiftListView(LoginRequiredMixin, ListView):
         groups = Group.objects.select_related('service').all()
 
         for group in groups:
-            group.services = ','.join([service.name for service in group.service_set.all()])
+            group.services = ', '.join([service.name for service in group.service_set.all()])
+
+        for shift in shifts:
+            shift.users_list = ', '.join([user.username for user in shift.users.all()])
 
         return { 'shifts': shifts, 'groups': groups }
 
