@@ -37,7 +37,7 @@ def send_alert(service, duty_officers=None):
     users = service.users_to_notify.filter(is_active=True)
     group_alerts = []
     
-    if service.group is None:
+    if service.group is not None:
         group_alerts = service.group.alerts.all()
 
     for alert in service.alerts.all():
