@@ -155,9 +155,10 @@ router.register(r'shifts', create_viewset(
     arg_fields=(
         'start',
         'end',
-        'user',
+        'group',
         'uid',
         'deleted',
+        'users',
     )
 ))
 
