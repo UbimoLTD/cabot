@@ -36,15 +36,18 @@ class AlertPluginUserData(PolymorphicModel):
 def send_alert(service, duty_officers=None):
     users = service.users_to_notify.filter(is_active=True)
     group_alerts = []
-    
+    service_alerts = service.alerts.all()
+
     if service.group is not None:
         group_alerts = service.group.alerts.all()
 
-    for alert in service.alerts.all():
+    for alert in AlertPlugin.objects.all():
         user_to_send = users
 
         if duty_officers and alert in group_alerts:
             user_to_send = []
+        elif alert not in service_alerts:
+            continue
 
         try:
             alert.send_alert(service, user_to_send, duty_officers)
