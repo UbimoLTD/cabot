@@ -66,11 +66,21 @@ updateGraphiteData = () ->
       frequency: f
   .done (data) ->
     if data.data? and data.data.length? != 0
-      $('#graphite_data_container').text JSON.stringify(data.data, undefined, 2)
+      $('#graphite_data_container').text('All datapoints: ' + getPrettyData(data.data) + '\n---\n' + JSON.stringify(data.data, undefined, 2))
       drawMorris data.data
     else
       $('#graphite_data_container').text 'Select a valid metric'
       removeMorris()
+
+getPrettyData = (json) ->
+  data = []
+  for i in json
+    for point in i.datapoints
+      if point[0] != null
+        data.push point[0]
+
+  data.join ', '
+
 
 drawMorris = (data) ->
   kvs = []
