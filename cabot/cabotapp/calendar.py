@@ -37,8 +37,14 @@ def get_repeated(event, group):
     if rrule is None:
         return False
 
-    repeated = list(r.rrule(getattr(r, rrule.get('freq')[0]), count=list(rrule.get('count'))[0],
-                    dtstart=event.decoded('dtstart')))
+    kwargs = { 'dtstart': event.decoded('dtstart'), 'count': rrule.get('count')[0] }
+
+    try:
+        kwargs['count'] = rrule.get('count')[0]
+    except TypeError:
+        kwargs['until'] = rrule.get('until')[0]
+
+    repeated = list(r.rrule(getattr(r, rrule.get('freq')[0]), **kwargs))
 
     for e in repeated:
         event_date = event.decoded('dtend') - event.decoded('dtstart') + e
