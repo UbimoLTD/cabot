@@ -37,7 +37,7 @@ def get_repeated(event, group):
     if rrule is None:
         return False
 
-    kwargs = { 'dtstart': event.decoded('dtstart'), 'count': rrule.get('count')[0] }
+    kwargs = { 'dtstart': event.decoded('dtstart') }
 
     try:
         kwargs['count'] = rrule.get('count')[0]
