@@ -11,6 +11,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.signals import post_save
 from django.utils import timezone
 from polymorphic import PolymorphicModel
 
@@ -133,9 +134,13 @@ class CheckGroupMixin(models.Model):
     hackpad_id = models.TextField(
         null=True,
         blank=True,
-        verbose_name='Recovery instructions',
+        verbose_name='Embedded recovery instructions',
         help_text='Gist, Hackpad or Refheap js embed with recovery instructions e.g. '
                   'https://you.hackpad.com/some_document.js'
+    )
+    runbook_link = models.TextField(
+        blank=True,
+        help_text='Link to the service runbook on your wiki.'
     )
 
     def __unicode__(self):
@@ -632,6 +637,7 @@ def minimize_targets(targets):
 
 
 class GraphiteStatusCheck(StatusCheck):
+
     class Meta(StatusCheck.Meta):
         proxy = True
 
@@ -654,10 +660,20 @@ class GraphiteStatusCheck(StatusCheck):
             return "%s %s %0.1f" % (value, self.check_type, float(self.value))
 
     def _run(self):
+        if not hasattr(self, 'utcnow'):
+            self.utcnow = None
         result = StatusCheckResult(check=self)
 
         failures = []
-        graphite_output = parse_metric(self.metric, mins_to_check=self.frequency)
+
+        last_result = self.last_result()
+        if last_result:
+            last_result_started = last_result.time
+            time_to_check = max(self.frequency, ((timezone.now() - last_result_started).total_seconds() / 60) + 1)
+        else:
+            time_to_check = self.frequency
+
+        graphite_output = parse_metric(self.metric, mins_to_check=time_to_check, utcnow=self.utcnow)
 
         try:
             result.raw_data = json.dumps(graphite_output['raw'])
@@ -843,7 +859,10 @@ class StatusCheckResult(models.Model):
 
     class Meta:
         ordering = ['-time_complete']
-        index_together = (('check', 'time_complete'),)
+        index_together = (
+            ('check', 'time_complete'),
+            ('check', 'id'),  # used to speed up StatusCheck.last_result
+        )
 
     def __unicode__(self):
         return '%s: %s @%s' % (self.status, self.check.name, self.time)
@@ -925,6 +944,12 @@ class UserProfile(models.Model):
     hipchat_alias = models.CharField(max_length=50, blank=True, default='')
     fallback_alert_user = models.BooleanField(default=False)
 
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+post_save.connect(create_user_profile, sender=User)
+
 
 class Group(models.Model):
     name = models.TextField(null=False, unique=True)
@@ -943,6 +968,7 @@ class Shift(models.Model):
     end = models.DateTimeField()
     group = models.ForeignKey(Group)
     uid = models.TextField()
+    last_modified = models.DateTimeField()
     deleted = models.BooleanField(default=False)
     users = models.ManyToManyField(
         User,

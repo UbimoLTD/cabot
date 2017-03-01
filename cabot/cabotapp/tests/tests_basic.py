@@ -11,13 +11,15 @@ from cabot.cabotapp.graphite import parse_metric
 from cabot.cabotapp.models import (
     GraphiteStatusCheck, JenkinsStatusCheck,
     HttpStatusCheck, ICMPStatusCheck, Service, Instance,
-    StatusCheckResult, UserProfile, minimize_targets)
+    StatusCheckResult, minimize_targets)
+from cabot.cabotapp.calendar import get_events
 from cabot.cabotapp.views import StatusCheckReportForm
 from django.contrib.auth.models import Permission
 from django.contrib.auth.models import User
 from django.core import mail
 from django.core.urlresolvers import reverse
 from django.test.client import Client
+from django.test.utils import override_settings
 from django.utils import timezone
 from mock import Mock, patch
 from rest_framework import status, HTTP_HEADER_ENCODING
@@ -161,6 +163,20 @@ def fake_http_404_response(*args, **kwargs):
     return resp
 
 
+def fake_gcal_response(*args, **kwargs):
+    resp = Mock()
+    resp.content = get_content('gcal_response.ics')
+    resp.status_code = 200
+    return resp
+
+
+def fake_recurring_response(*args, **kwargs):
+    resp = Mock()
+    resp.content = get_content('recurring_response.ics')
+    resp.status_code = 200
+    return resp
+
+
 def throws_timeout(*args, **kwargs):
     raise requests.RequestException(u'фиктивная ошибка innit')
 
@@ -233,6 +249,7 @@ class TestCheckRun(LocalTestCase):
     def test_graphite_run(self):
         checkresults = self.graphite_check.statuscheckresult_set.all()
         self.assertEqual(len(checkresults), 2)
+        self.graphite_check.utcnow = 1387818601 # see graphite_response.json for this magic timestamp
         self.graphite_check.run()
         checkresults = self.graphite_check.statuscheckresult_set.all()
         self.assertEqual(len(checkresults), 3)
@@ -282,8 +299,8 @@ class TestCheckRun(LocalTestCase):
 
     @patch('cabot.cabotapp.graphite.requests.get', fake_graphite_series_response)
     def test_graphite_series_run(self):
-        jsn = parse_metric('fake.pattern')
-        self.assertEqual(jsn['average_value'], 59.86)
+        jsn = parse_metric('fake.pattern', utcnow=1387818601)
+        self.assertLess(abs(jsn['average_value']-53.26), 0.1)
         self.assertEqual(jsn['series'][0]['max'], 151.0)
         self.assertEqual(jsn['series'][0]['min'], 0.1)
 
@@ -416,6 +433,27 @@ class TestInstances(LocalTestCase):
         self.assertNotEqual(new.status_checks.all()[0], old.status_checks.all()[0])
 
 
+class TestDutyRota(LocalTestCase):
+
+    @patch('cabot.cabotapp.models.requests.get', fake_gcal_response)
+    def test_duty_rota(self):
+        events = get_events()
+        self.assertEqual(events[0]['summary'], 'troels')
+
+    @patch('cabot.cabotapp.models.requests.get', fake_recurring_response)
+    def test_duty_rota_recurring(self):
+        events = get_events()
+        events.sort(key=lambda ev: ev['start'])
+        curr_summ = events[0]['summary']
+        self.assertTrue(curr_summ == 'foo' or curr_summ == 'bar')
+        for i in range(0, 60):
+            self.assertEqual(events[i]['summary'], curr_summ)
+            if(curr_summ == 'foo'):
+                curr_summ = 'bar'
+            else:
+                curr_summ = 'foo'
+
+
 class TestWebInterface(LocalTestCase):
 
     def setUp(self):
@@ -519,11 +557,15 @@ class TestAPI(LocalTestCase):
                     'name': u'Service',
                     'users_to_notify': [],
                     'alerts_enabled': True,
-                    'status_checks': [1, 2, 3],
+                    'status_checks': [
+                        self.graphite_check.id,
+                        self.jenkins_check.id,
+                        self.http_check.id
+                    ],
                     'alerts': [],
                     'hackpad_id': None,
                     'instances': [],
-                    'id': 1,
+                    'id': self.service.id,
                     'url': u'',
                     'overall_status': u'PASSING'
                 },
@@ -533,11 +575,11 @@ class TestAPI(LocalTestCase):
                     'name': u'Hello',
                     'users_to_notify': [],
                     'alerts_enabled': True,
-                    'status_checks': [4],
+                    'status_checks': [pingcheck.id],
                     'alerts': [],
                     'hackpad_id': None,
                     'address': u'192.168.0.1',
-                    'id': 1,
+                    'id': self.instance.id,
                     'overall_status': u'PASSING'
                 },
             ],
@@ -548,7 +590,7 @@ class TestAPI(LocalTestCase):
                     'importance': u'ERROR',
                     'frequency': 5,
                     'debounce': 0,
-                    'id': 1,
+                    'id': self.graphite_check.id,
                     'calculated_status': u'passing',
                 },
                 {
@@ -557,7 +599,7 @@ class TestAPI(LocalTestCase):
                     'importance': u'ERROR',
                     'frequency': 5,
                     'debounce': 0,
-                    'id': 2,
+                    'id': self.jenkins_check.id,
                     'calculated_status': u'passing',
                 },
                 {
@@ -566,7 +608,7 @@ class TestAPI(LocalTestCase):
                     'importance': u'CRITICAL',
                     'frequency': 5,
                     'debounce': 0,
-                    'id': 3,
+                    'id': self.http_check.id,
                     'calculated_status': u'passing',
                 },
                 {
@@ -575,7 +617,7 @@ class TestAPI(LocalTestCase):
                     'importance': u'ERROR',
                     'frequency': 5,
                     'debounce': 0,
-                    'id': 4,
+                    'id': pingcheck.id,
                     'calculated_status': u'passing',
                 },
             ],
@@ -591,7 +633,7 @@ class TestAPI(LocalTestCase):
                     'value': u'9.0',
                     'expected_num_hosts': 0,
                     'allowed_num_failures': 0,
-                    'id': 1,
+                    'id': self.graphite_check.id,
                     'calculated_status': u'passing',
                 },
             ],
@@ -609,7 +651,7 @@ class TestAPI(LocalTestCase):
                     'status_code': u'200',
                     'timeout': 10,
                     'verify_ssl_certificate': True,
-                    'id': 3,
+                    'id': self.http_check.id,
                     'calculated_status': u'passing',
                 },
             ],
@@ -621,7 +663,7 @@ class TestAPI(LocalTestCase):
                     'frequency': 5,
                     'debounce': 0,
                     'max_queued_build_time': 10,
-                    'id': 2,
+                    'id': self.jenkins_check.id,
                     'calculated_status': u'passing',
                 },
             ],
@@ -632,7 +674,7 @@ class TestAPI(LocalTestCase):
                     'importance': u'ERROR',
                     'frequency': 5,
                     'debounce': 0,
-                    'id': 4,
+                    'id': pingcheck.id,
                     'calculated_status': u'passing',
                 },
             ],
@@ -647,7 +689,7 @@ class TestAPI(LocalTestCase):
                     'alerts': [],
                     'hackpad_id': None,
                     'instances': [],
-                    'id': 2,
+                    'id': self.service.id,
                     'url': u'',
                     'overall_status': u'PASSING',
                 },
@@ -661,7 +703,7 @@ class TestAPI(LocalTestCase):
                     'alerts': [],
                     'hackpad_id': None,
                     'address': u'255.255.255.255',
-                    'id': 2,
+                    'id': self.instance.id,
                     'overall_status': u'PASSING',
                 },
             ],
@@ -677,7 +719,7 @@ class TestAPI(LocalTestCase):
                     'value': u'2',
                     'expected_num_hosts': 0,
                     'allowed_num_failures': 0,
-                    'id': 5,
+                    'id': self.graphite_check.id,
                     'calculated_status': u'passing',
                 },
             ],
@@ -695,7 +737,7 @@ class TestAPI(LocalTestCase):
                     'status_code': u'201',
                     'timeout': 30,
                     'verify_ssl_certificate': True,
-                    'id': 7,
+                    'id': self.http_check.id,
                     'calculated_status': u'passing',
                 },
             ],
@@ -707,7 +749,7 @@ class TestAPI(LocalTestCase):
                     'frequency': 5,
                     'debounce': 0,
                     'max_queued_build_time': 37,
-                    'id': 6,
+                    'id': self.jenkins_check.id,
                     'calculated_status': u'passing',
                 },
             ],
@@ -718,7 +760,7 @@ class TestAPI(LocalTestCase):
                     'importance': u'CRITICAL',
                     'frequency': 5,
                     'debounce': 0,
-                    'id': 8,
+                    'id': pingcheck.id,
                     'calculated_status': u'passing',
                 },
             ],
@@ -751,7 +793,7 @@ class TestAPI(LocalTestCase):
     def test_posts(self):
         for model, items in self.post_data.items():
             for item in items:
-                # hackpad_id and other null text fields omitted on create 
+                # hackpad_id and other null text fields omitted on create
                 # for now due to rest_framework bug:
                 # https://github.com/tomchristie/django-rest-framework/issues/1879
                 # Update: This has been fixed in master:
@@ -769,7 +811,7 @@ class TestAPI(LocalTestCase):
                         item[field] = None
                 self.assertEqual(self.normalize_dict(create_response.data), item)
                 get_response = self.client.get(api_reverse('{}-detail'.format(model), args=[item['id']]),
-                                               format='json', HTTP_AUTHORIZATION=self.basic_auth)                            
+                                               format='json', HTTP_AUTHORIZATION=self.basic_auth)
                 self.assertEqual(self.normalize_dict(get_response.data), item)
 
 class TestAPIFiltering(LocalTestCase):
@@ -874,17 +916,15 @@ class TestAlerts(LocalTestCase):
     def setUp(self):
         super(TestAlerts, self).setUp()
 
-        self.user_profile = UserProfile.objects.create(
-            user = self.user,
-            hipchat_alias = "test_user_hipchat_alias",)
-        self.user_profile.save()
+        self.user.profile.hipchat_alias = "test_user_hipchat_alias"
+        self.user.profile.save()
 
         self.service.users_to_notify.add(self.user)
         self.service.update_status()
 
     def test_users_to_notify(self):
         self.assertEqual(self.service.users_to_notify.all().count(), 1)
-        self.assertEqual(self.service.users_to_notify.get(pk=1).username, self.user.username)
+        self.assertEqual(self.service.users_to_notify.get().username, self.user.username)
 
     @patch('cabot.cabotapp.models.send_alert')
     def test_alert(self, fake_send_alert):

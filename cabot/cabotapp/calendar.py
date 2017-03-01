@@ -1,5 +1,7 @@
-import requests
+import datetime
 from django.conf import settings
+from django.utils.timezone import now
+from dateutil import rrule
 from icalendar import Calendar
 import dateutil.rrule as r
 import time

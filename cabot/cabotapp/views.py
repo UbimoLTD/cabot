@@ -11,6 +11,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.core.urlresolvers import reverse
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, HttpResponseRedirect
@@ -276,7 +277,7 @@ class InstanceForm(SymmetricalForm):
             'service_set',
         )
         widgets = {
-            'name': forms.TextInput(attrs={'style': 'width: 30%;'}),
+            'name': forms.TextInput(attrs={'style': 'width: 70%;'}),
             'address': forms.TextInput(attrs={'style': 'width: 70%;'}),
             'status_checks': forms.SelectMultiple(attrs={
                 'data-rel': 'chosen',
@@ -291,7 +292,6 @@ class InstanceForm(SymmetricalForm):
                 'style': 'width: 70%',
             }),
             'users_to_notify': forms.CheckboxSelectMultiple(),
-            'hackpad_id': forms.TextInput(attrs={'style': 'width:30%;'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -316,9 +316,10 @@ class ServiceForm(forms.ModelForm):
             'hackpad_id',
             'tag',
             'group'
+            'runbook_link'
         )
         widgets = {
-            'name': forms.TextInput(attrs={'style': 'width: 30%;'}),
+            'name': forms.TextInput(attrs={'style': 'width: 70%;'}),
             'url': forms.TextInput(attrs={'style': 'width: 70%;'}),
             'tag': forms.TextInput(attrs={'style': 'width: 30%;'}),
             'status_checks': forms.SelectMultiple(attrs={
@@ -334,12 +335,13 @@ class ServiceForm(forms.ModelForm):
                 'style': 'width: 70%',
             }),
             'users_to_notify': forms.CheckboxSelectMultiple(),
-            'hackpad_id': forms.TextInput(attrs={'style': 'width:30%;'}),
             'group': forms.Select(
                 attrs={
                 'data-rel': 'chosen',
                 'style': 'width: 20%',
             })
+            'hackpad_id': forms.TextInput(attrs={'style': 'width:70%;'}),
+            'runbook_link': forms.TextInput(attrs={'style': 'width:70%;'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -359,6 +361,15 @@ class ServiceForm(forms.ModelForm):
                 return value
         raise ValidationError('Please specify a valid JS snippet link')
 
+    def clean_runbook_link(self):
+        value = self.cleaned_data['runbook_link']
+        if not value:
+            return ''
+        try:
+            URLValidator()(value)
+            return value
+        except ValidationError:
+            raise ValidationError('Please specify a valid runbook link')
 
 class StatusCheckReportForm(forms.Form):
     service = forms.ModelChoiceField(
@@ -841,12 +852,10 @@ def jsonify(d):
 @login_required
 def graphite_api_data(request):
     metric = request.GET.get('metric')
-
     if request.GET.get('frequency'):
         mins_to_check = int(request.GET.get('frequency'))
     else:
         mins_to_check = None
-
     data = None
     matching_metrics = None
     try:
