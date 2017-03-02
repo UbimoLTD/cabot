@@ -339,7 +339,7 @@ class ServiceForm(forms.ModelForm):
                 attrs={
                 'data-rel': 'chosen',
                 'style': 'width: 20%',
-            })
+            }),
             'hackpad_id': forms.TextInput(attrs={'style': 'width:70%;'}),
             'runbook_link': forms.TextInput(attrs={'style': 'width:70%;'}),
         }
