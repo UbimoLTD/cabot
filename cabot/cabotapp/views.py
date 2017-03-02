@@ -315,7 +315,7 @@ class ServiceForm(forms.ModelForm):
             'alerts_enabled',
             'hackpad_id',
             'tag',
-            'group'
+            'group',
             'runbook_link'
         )
         widgets = {
