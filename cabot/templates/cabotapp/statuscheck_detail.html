@@ -7,7 +7,10 @@
 <div class="row">
   <div class="col-xs-12">
     <div class="col-xs-1"><h2><i class="glyphicon glyphicon-{% if check.polymorphic_ctype.model == 'graphitestatuscheck' %}signal{% elif check.polymorphic_ctype.model == 'httpstatuscheck' %}arrow-up{% elif check.polymorphic_ctype.model == 'jenkinsstatuscheck' %}ok{% elif check.polymorphic_ctype.model == 'icmpstatuscheck' %}transfer{% endif %}"></i></h2></div>
-    <div class="col-xs-5"><h2>{{ check.name }}</h2></div>
+    <div class="col-xs-5">
+      <h2>{{ check.name }}</h2>
+      <h6>{{ check.description }}</h6>
+    </div>
     <div class="col-xs-4 text-right"><h2><span class="label label-{% if check.calculated_status == 'passing' %}success{% else %}danger{% endif %}">{{ check.calculated_status|capfirst }}</span></h2></div>
     <div class="col-xs-2 text-right"><h2>
       {% if check.polymorphic_ctype.model == 'jenkinsstatuscheck' %}

@@ -159,6 +159,7 @@ class GraphiteStatusCheckForm(StatusCheckForm):
         model = GraphiteStatusCheck
         fields = (
             'name',
+            'description',
             'frequency',
             'metric',
             'check_type',
@@ -182,7 +183,10 @@ class GraphiteStatusCheckForm(StatusCheckForm):
             }),
             'check_type': forms.Select(attrs={
                 'data-rel': 'chosen',
-            })
+            }),
+            'description': forms.Textarea(attrs={
+                'style': 'height:60px',
+            }),
         })
 
 

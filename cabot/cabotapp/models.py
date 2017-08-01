@@ -426,6 +426,7 @@ class StatusCheck(PolymorphicModel):
         max_length=50, choices=Service.STATUSES, default=Service.CALCULATED_PASSING_STATUS, blank=True)
     last_run = models.DateTimeField(null=True)
     cached_health = models.TextField(editable=False, null=True)
+    description = models.TextField(null=True, blank=True)
 
     # Graphite checks
     metric = models.TextField(
