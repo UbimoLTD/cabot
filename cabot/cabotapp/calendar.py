@@ -49,8 +49,9 @@ def _recurring_component_to_events(component):
             'start': start,
             'end': start + event_length,
             'summary': component.decoded('summary'),
-            'uid': component.decoded('uid'),
+            'uid': '%s_%s' % (str(start), component.decoded('uid')),
             'last_modified': component.decoded('last-modified'),
+            'attendee': component.decoded('attendee'),
         })
     return events
 
@@ -76,6 +77,7 @@ def get_events():
                         'summary': component.decoded('summary'),
                         'uid': component.decoded('uid'),
                         'last_modified': component.decoded('last-modified'),
+                        'attendee': component.decoded('attendee'),
                     })
                 except KeyError:
                     logger.debug('Failed to parse VEVENT component: %s',

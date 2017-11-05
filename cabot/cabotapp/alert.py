@@ -49,13 +49,23 @@ class AlertPluginUserData(PolymorphicModel):
         return u'%s' % (self.title)
 
 
+def _send_alert(alert, service, users, duty_officers):
+    try:
+        alert._send_alert(service, users, duty_officers)
+    except Exception as e:
+        logging.exception('Could not send %s alert: %s' % (alert.name, e))
+
 def send_alert(service, duty_officers=None):
     users = service.users_to_notify.filter(is_active=True)
+    duty_officers = [] if duty_officers is None else duty_officers
+    if len(duty_officers) > 0:
+        for alert in AlertPlugin.objects.filter(title__contains='Twilio SMS'):
+            _send_alert(alert, service, [], duty_officers)
+
     for alert in service.alerts.filter(enabled=True):
-        try:
-            alert._send_alert(service, users, duty_officers)
-        except Exception as e:
-            logging.exception('Could not send %s alert: %s' % (alert.name, e))
+        if len(duty_officers) > 0 and 'Twilio' in alert.title:
+            continue
+        _send_alert(alert, service, users, duty_officers)
 
 
 def send_alert_update(service, duty_officers=None):

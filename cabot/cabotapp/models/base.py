@@ -904,7 +904,10 @@ post_save.connect(create_user_profile, sender=settings.AUTH_USER_MODEL)
 class Shift(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField()
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    users = models.ManyToManyField(
+        User,
+        blank=False,
+    )
     uid = models.TextField()
     last_modified = models.DateTimeField()
     deleted = models.BooleanField(default=False)
@@ -913,7 +916,8 @@ class Shift(models.Model):
         deleted = ''
         if self.deleted:
             deleted = ' (deleted)'
-        return "%s: %s to %s%s" % (self.user.username, self.start, self.end, deleted)
+        users = ', '.join([user.username for user in self.users.all()])
+        return "%s: %s to %s%s" % (users, self.start, self.end, deleted)
 
 
 def get_duty_officers(at_time=None):
@@ -927,7 +931,8 @@ def get_duty_officers(at_time=None):
         end__gt=at_time,
     )
     if current_shifts:
-        duty_officers = [shift.user for shift in current_shifts]
+        for shift in current_shifts:
+            duty_officers += [u for u in shift.users.all()]
         return duty_officers
     else:
         try:
@@ -939,24 +944,31 @@ def get_duty_officers(at_time=None):
 
 def update_shifts():
     events = get_events()
-    users = User.objects.filter(is_active=True)
-    user_lookup = {}
-    for u in users:
-        user_lookup[u.username.lower()] = u
     future_shifts = Shift.objects.filter(start__gt=timezone.now())
     future_shifts.update(deleted=True)
 
     for event in events:
         e = event['summary'].lower().strip()
-        if e in user_lookup:
-            user = user_lookup[e]
-            # Delete any events that have been updated in ical
-            Shift.objects.filter(uid=event['uid'],
-                last_modified__lt=event['last_modified']).delete()
-            Shift.objects.get_or_create(
+        e_users = []
+        for user in event['attendee']:
+            user = user.replace('mailto:', '')
+            try:
+                user = User.objects.get(email=user)
+                e_users.append(user)
+            except User.DoesNotExist:
+                pass
+
+        # Delete any events that have been updated in ical
+        Shift.objects.filter(uid=event['uid'],
+            last_modified__lt=event['last_modified']).delete()
+        # Shift without users to get alert will not be here!
+        if len(e_users) == 0:
+            continue
+
+        s, _ = Shift.objects.get_or_create(
                 uid=event['uid'],
                 start=event['start'],
                 end=event['end'],
                 last_modified=event['last_modified'],
-                user=user,
                 deleted=False)
+        s.users.add(*e_users)

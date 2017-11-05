@@ -35,14 +35,14 @@
 <script type="text/coffeescript">
 GRAPHITE_ENDPOINT = '/graphite/'
 
+complete = () ->
+  clearTimeout(timer)
+  timer = setTimeout(updateGraphiteData, 1000)
+
 $(document).ready ->
   updateGraphiteData()
   $('#id_metric').on('keyup', complete)
   $('#id_frequency').on('keyup', complete)
-
-  complete = () ->
-      clearTimeout(timer)
-      timer = setTimeout(updateGraphiteData, 1000)
 
   $('#id_metric').autocomplete
     source: (request, response) ->
@@ -77,10 +77,21 @@ updateGraphiteData = () ->
   .done (data) ->
     if data.data? and data.data.length? != 0
       $('#graphite_data_container').text JSON.stringify(data.data, undefined, 2)
+      $('#graphite_datapoints_total').text 'All datapoints: ' + getPrettyData(data.data)
       drawMorris data.data
     else
       $('#graphite_data_container').text 'Select a valid metric'
+      $('#graphite_datapoints_total').text ''
       removeMorris()
+
+getPrettyData = (json) ->
+  data = []
+  for i in json
+    for point in i.datapoints
+      if point[0] != null
+        data.push point[0]
+
+  data.join ', '
 
 drawMorris = (data) ->
   kvs = []

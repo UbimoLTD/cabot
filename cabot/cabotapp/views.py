@@ -741,7 +741,6 @@ class AlertTestView(LoginRequiredMixin, View):
                 end=timezone.now() + timedelta(days=1),
                 uid='test-shift',
                 last_modified=timezone.now(),
-                user=user
             ).save()
             service.alert()
             transaction.savepoint_rollback(sid)
