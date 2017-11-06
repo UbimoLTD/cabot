@@ -159,10 +159,11 @@ class GraphiteStatusCheckForm(StatusCheckForm):
         model = GraphiteStatusCheck
         fields = (
             'name',
+            'description',
+            'frequency',
             'metric',
             'check_type',
             'value',
-            'frequency',
             'active',
             'importance',
             'expected_num_hosts',
@@ -181,7 +182,10 @@ class GraphiteStatusCheckForm(StatusCheckForm):
             }),
             'check_type': forms.Select(attrs={
                 'data-rel': 'chosen',
-            })
+            }),
+            'description': forms.Textarea(attrs={
+                'style': 'height:60px',
+            }),
         })
 
 
@@ -323,7 +327,8 @@ class ServiceForm(forms.ModelForm):
             'alerts_enabled',
             'hackpad_id',
             'runbook_link',
-            'is_public'
+            'is_public',
+            'tag'
         )
         widgets = {
             'name': forms.TextInput(attrs={'style': 'width: 70%;'}),
@@ -346,6 +351,7 @@ class ServiceForm(forms.ModelForm):
             }),
             'hackpad_id': forms.TextInput(attrs={'style': 'width:70%;'}),
             'runbook_link': forms.TextInput(attrs={'style': 'width:70%;'}),
+            'tag': forms.TextInput(attrs={'style': 'width: 30%;'}),
         }
 
     def __init__(self, *args, **kwargs):
