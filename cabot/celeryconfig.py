@@ -8,3 +8,5 @@ task_always_eager = environ_get_list(['CELERY_ALWAYS_EAGER', 'CELERY_TASK_ALWAYS
 backend = os.environ.get('CELERY_RESULT_BACKEND', None)
 
 timezone = 'UTC'
+task_soft_time_limit = 150
+worker_max_tasks_per_child = 20
